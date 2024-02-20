@@ -5,6 +5,11 @@
 #include "network.h"
 int main()
 {
+    srand(time(0));
     network* myNetwork = new network(); 
     myNetwork->populateNetworkStruct();
+    myNetwork->displayNetwork();
+
+
+
 }

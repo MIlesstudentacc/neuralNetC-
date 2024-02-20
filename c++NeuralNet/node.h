@@ -12,6 +12,8 @@ public:
 
 	void setWeightsSize(int size);
 
+	void displayWeights();
+
 
 
 };

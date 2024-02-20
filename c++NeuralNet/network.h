@@ -12,7 +12,7 @@ private:
     int hiddenLayers = 0;
     double* biases; 
 
-    node** networkStructure;
+    node*** networkStructure;
 public:
 
     network();
@@ -20,7 +20,8 @@ public:
     double sigmoid(double x);//function taken from https://hackaday.io/page/5331-sigmoid-function
 
     void populateNetworkStruct();
-
+    
+    void displayNetwork();
 
 
       
