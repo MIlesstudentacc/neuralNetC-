@@ -14,6 +14,12 @@ public:
 
 	void displayWeights();
 
+	void setActivation(double newActivation); 
+
+	double getActivation(); 
+
+	double getWeight(int weightID);
+
 
 
 };

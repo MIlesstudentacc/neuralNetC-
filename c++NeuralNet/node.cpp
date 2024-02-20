@@ -18,3 +18,19 @@ void node::displayWeights()
 		std::cout << weights[i] << std::endl;
 	}
 }
+
+void node::setActivation(double newActivation)
+{
+	activation = newActivation;
+}
+
+double node::getActivation()
+{
+	return activation; 
+}
+
+double node::getWeight(int weightID)
+{
+	return weights[weightID];
+}
+
