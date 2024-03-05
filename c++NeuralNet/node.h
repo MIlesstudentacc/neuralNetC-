@@ -4,9 +4,10 @@ class node
 {
 private:
 	double* weights;
-	std::vector<double**> weightUpdates; 
+	std::vector<double*> weightUpdates; 
 	double* gradient;
 	double activation = 0;
+	double rawForwardSum; 
 public:
 	void updateWeights(double weight,int weightID);
 
@@ -20,7 +21,11 @@ public:
 
 	double getWeight(int weightID);
 
+	void setRawForwardSum(double rawForwardSum);
 
+	double getRawForwardSum();
+
+	void addToWeightUpdates(double* weightUpdate);
 
 };
 

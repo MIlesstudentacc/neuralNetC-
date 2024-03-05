@@ -9,6 +9,7 @@ int main()
     network* myNetwork = new network(); 
     myNetwork->populateNetworkStruct();
     myNetwork->forwardPropagate();
+    myNetwork->displayNetwork();
 
 
 

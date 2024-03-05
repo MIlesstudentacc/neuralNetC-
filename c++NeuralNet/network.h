@@ -12,13 +12,14 @@ private:
     int hiddenLayers = 0;
     int totalLayers = 0; 
     double* biases; 
+    std::vector<double> costDerivativeVector;
 
     node*** networkStructure;
     double sigmoid(double x);//function taken from https://hackaday.io/page/5331-sigmoid-function
 
     double derivativeSigmoid(double x);
 
-    double cost(double activation, double desiredOutcome);
+    double derivativecost(double activation, double desiredOutcome);
 public:
 
     network();
@@ -29,8 +30,17 @@ public:
 
     void forwardPropagate(); 
 
-   
+    void backPropOutput(double DesiredOutput);
 
+    void biasInit();
+
+    void clearDerivativeCosts();
+
+    void addToDerivativeCosts(double derivativeCostInstance); 
+
+    void fullBackPropogation(double DesiredOutput); 
+    
+    double calcBackDerivToCost(int layer, int costToBootstrap, int neuronCount);
 
       
 

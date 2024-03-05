@@ -34,3 +34,19 @@ double node::getWeight(int weightID)
 	return weights[weightID];
 }
 
+void node::setRawForwardSum(double rawForwardSum)
+{
+	this->rawForwardSum = rawForwardSum;
+}
+
+double node::getRawForwardSum()
+{
+	return rawForwardSum;
+}
+
+void node::addToWeightUpdates(double* weightUpdate)
+{
+	weightUpdates.push_back(weightUpdate);
+}
+
+
