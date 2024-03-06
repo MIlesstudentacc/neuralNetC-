@@ -13,6 +13,8 @@ private:
     int totalLayers = 0; 
     double* biases; 
     std::vector<double> costDerivativeVector;
+ 
+
 
     node*** networkStructure;
     double sigmoid(double x);//function taken from https://hackaday.io/page/5331-sigmoid-function
@@ -40,7 +42,7 @@ public:
 
     void fullBackPropogation(double DesiredOutput); 
     
-    double calcBackDerivToCost(int layer, int costToBootstrap, int neuronCount);
+    double calcBackDerivToCost(int layer, int neuronCount);
 
       
 

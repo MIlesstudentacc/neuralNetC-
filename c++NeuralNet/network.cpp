@@ -39,12 +39,12 @@ void network::populateNetworkStruct() //big function so might try and condense i
     for (int nodeId = 0; nodeId < inputNeurons; nodeId++)
     {
         node* inputNode = new node();
-        inputNode->setWeightsSize(nextLayerNeurons);
+
         for (int nodeWeightId = 0; nodeWeightId < nextLayerNeurons; nodeWeightId++)
         {
         
             weight = (double)rand() / RAND_MAX;
-            inputNode->updateWeights(weight, nodeWeightId);
+            inputNode->updateWeights(weight);
         }
         nodeList[nodeId] = inputNode;
     }
@@ -61,12 +61,12 @@ void network::populateNetworkStruct() //big function so might try and condense i
         {
             node* hiddenNode = new node(); 
             hiddenNode->setBias((double)rand() / RAND_MAX);
-            hiddenNode->setWeightsSize(nextLayerNeurons);
+    
             for (int nodeWeightId = 0; nodeWeightId < nextLayerNeurons; nodeWeightId++)
             {
            
                 weight = (double)rand() / RAND_MAX;
-                hiddenNode->updateWeights(weight, nodeWeightId);
+                hiddenNode->updateWeights(weight);
             }
             nodeList[nodeId] = hiddenNode;
         }
@@ -102,14 +102,14 @@ void network::forwardPropagate()
     double rawForwardPassSum = 0;
     double SigmoidedSum = 0; 
     int nextLayerNeuronCount = 0;
-    for (int layers = 0; layers < totalLayers-2; layers++)
+    for (int layers = 0; layers < totalLayers-1; layers++)
     {
         if (layers == 0)
         {
             neuronCount = inputNeurons;
             nextLayerNeuronCount = hiddenNeurons;
         }
-        else if (layers == totalLayers)//wut? 
+        else if (layers == totalLayers-2)//think ive fixed this! 
         {
             neuronCount = outputNeurons;
             nextLayerNeuronCount = hiddenNeurons;
@@ -152,22 +152,27 @@ void network::backPropOutput(double desiredOutput)
     double* weightUpdates = new double[outputNeurons];
     int neuronCount = hiddenNeurons;
     int NextLayerNeuronCount = outputNeurons;
+    double derivativeCostInstance;
+    node* neuron;
    
     node* nextNeuron;
         
     for (int nodeID = 0; nodeID < neuronCount; nodeID++)
     {
         weightUpdates = new double[outputNeurons];
-        node* neuron = networkStructure[totalLayers-2][nodeID];
+        neuron = networkStructure[totalLayers-2][nodeID];
         
         for (int weightID = 0; weightID < NextLayerNeuronCount; weightID++)
         {
             nextNeuron = networkStructure[totalLayers - 1][weightID];
-            double derivativeCostInstance = derivativecost(weightID, desiredOutput);
+            derivativeCostInstance = derivativecost(nextNeuron->getActivation(), desiredOutput); //(-- this also needs fixing 
             addToDerivativeCosts(derivativeCostInstance);
             weightUpdates[weightID] = neuron->getActivation() * derivativeSigmoid(nextNeuron->getRawForwardSum()) * derivativeCostInstance;
                    
         }
+        double current_bias = neuron->getBias();
+        double bias_change = 1 * derivativeSigmoid(neuron->getRawForwardSum()) * derivativeCostInstance;
+        neuron->addToUpdateBiases(bias_change);
         //nextNeuron->setBias(1* derivativeSigmoid(nextNeuron->getRawForwardSum()) * derivativeCostInstance)
         //neuron->addToWeightUpdates(weightUpdates);
         
@@ -196,6 +201,8 @@ void network::fullBackPropogation(double desiredOutput)
     double neuronCount = hiddenNeurons;
     double* weightUpdates = new double[outputNeurons];
     std::vector<double> newDCosts;
+    node* neuron;
+    double newDeriv;
     backPropOutput(desiredOutput);
     for (int layer = hiddenLayers - 1; layer > 0; layer--)
     {
@@ -204,11 +211,11 @@ void network::fullBackPropogation(double desiredOutput)
             for (int nodeID = 0; nodeID < neuronCount; nodeID++)
             {
 
-                node* neuron = networkStructure[layer][nodeID];
+                neuron = networkStructure[layer][nodeID];
                 weightUpdates = new double[nextLayerCount];
                 for (int weightID = 0; weightID < nextLayerCount; weightID++)
                 {
-                    double newDeriv = calcBackDerivToCost(layer, weightID, neuronCount);
+                    newDeriv = calcBackDerivToCost(layer, weightID, neuron);
                     newDCosts.push_back(newDeriv);
                
                     node* nextNeuron = networkStructure[layer + 1][weightID];
@@ -222,6 +229,10 @@ void network::fullBackPropogation(double desiredOutput)
                 neuron->addToWeightUpdates(weightUpdates);
                
             }
+            double current_bias = neuron->getBias();
+            double bias_change = 1 * derivativeSigmoid(neuron->getRawForwardSum()) * newDeriv;
+            neuron->addToUpdateBiases(bias_change);
+            
         
         costDerivativeVector = newDCosts;
 
@@ -242,14 +253,23 @@ double network::derivativecost(double activation, double desiredOutcome)
     return(2 * (activation - desiredOutcome));
 }
 
-double network::calcBackDerivToCost(int layer, int costToBootstrap, int neuronCount)
+double network::calcBackDerivToCost(int layer,int nextLayerCount,node* neuron)
 {
     double sumCost;
-    for (int nodeID = 0; nodeID < neuronCount; nodeID++)
+
+    
+    for (int weightID = 0; weightID < nextLayerCount; weightID++)
     {
-        node* neuron = networkStructure[layer][neuronCount];
-        sumCost = sumCost + neuron->getWeight(neuronCount) * derivativeSigmoid(neuron->getRawForwardSum()) * costDerivativeVector.at(costToBootstrap);
+        node* nextNeuron = networkStructure[layer + 1][weightID];
+
+        sumCost = sumCost + neuron->getWeight(weightID) * derivativeSigmoid(nextNeuron->getRawForwardSum()) * costDerivativeVector.at(weightID);
     }
+    
+}
+
+double network::updateAllWeights()
+{
+    
 }
 
 
