@@ -173,8 +173,8 @@ void network::backPropOutput(double desiredOutput)
         double current_bias = neuron->getBias();
         double bias_change = 1 * derivativeSigmoid(neuron->getRawForwardSum()) * derivativeCostInstance;
         neuron->addToUpdateBiases(bias_change);
-        //nextNeuron->setBias(1* derivativeSigmoid(nextNeuron->getRawForwardSum()) * derivativeCostInstance)
-        //neuron->addToWeightUpdates(weightUpdates);
+        
+        neuron->addToWeightUpdates(weightUpdates);
         
             
                 
@@ -269,7 +269,44 @@ double network::calcBackDerivToCost(int layer,int nextLayerCount,node* neuron)
 
 double network::updateAllWeights()
 {
-    
+    int neuronCount = 0; 
+    for (int layers = 0; layers < totalLayers-1; layers++)
+    {
+        if (layers == 0)
+        {
+            neuronCount = inputNeurons;
+        }
+        if (layers == totalLayers - 2)
+        {
+            neuronCount = hiddenLayers;
+        }
+        for (int nodeID = 0; nodeID < neuronCount; nodeID++)
+        {
+            networkStructure[layers][nodeID]->updateThisNeuronsWeights(LEARNING_RATE);
+
+        }
+    }
+}
+
+double network::updateAllBiases()
+{
+    int neuronCount = 0;
+    for (int layers = 1; layers < totalLayers - 1; layers++)
+    {
+        if (layers < totalLayers - 1)
+        {
+            neuronCount = hiddenLayers;
+        }
+        else
+        {
+            neuronCount = outputNeurons;
+        }
+        for (int nodeID = 0; nodeID < neuronCount; nodeID++)
+        {
+            networkStructure[layers][nodeID]->updateThisNeuronsBias(LEARNING_RATE);
+
+        }
+    }
 }
 
 

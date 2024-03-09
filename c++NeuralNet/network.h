@@ -13,6 +13,7 @@ private:
     int totalLayers = 0; 
     double* biases; 
     std::vector<double> costDerivativeVector;
+    const double LEARNING_RATE = 0.001;
  
 
 
@@ -34,17 +35,17 @@ public:
 
     void backPropOutput(double DesiredOutput);
 
-    void biasInit();
-
     void clearDerivativeCosts();
 
     void addToDerivativeCosts(double derivativeCostInstance); 
 
     void fullBackPropogation(double DesiredOutput); 
     
-    double calcBackDerivToCost(int layer, int neuronCount);
+    double calcBackDerivToCost(int layer, int nextLayerCount, node* neuron);
 
-      
+    double updateAllWeights();
+
+    double updateAllBiases(); 
 
    
 
