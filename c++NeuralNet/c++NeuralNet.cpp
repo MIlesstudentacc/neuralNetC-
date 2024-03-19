@@ -7,9 +7,22 @@ int main()
 {
     srand(time(0));
     network* myNetwork = new network(); 
-    myNetwork->populateNetworkStruct();
-    myNetwork->forwardPropagate();
-    myNetwork->displayNetwork();
+    
+    myNetwork->populateNetworkStructFixed();
+    myNetwork->setTestInputs(); 
+    myNetwork->forwardPropagateFixed();
+    myNetwork->displayNetworkBias();
+    myNetwork->displayNetworkActivation();
+    //myNetwork->getDesiredOutcomes();
+    
+    myNetwork->calcBackPropagationFixed();
+    myNetwork->updateAllBiases();
+    myNetwork->updateAllWeights();
+
+    myNetwork->forwardPropagateFixed();
+    std::cout << "____________--NEW ACTIVATIONS____________" << std::endl;
+    myNetwork->displayNetworkActivation();
+
 
 
 

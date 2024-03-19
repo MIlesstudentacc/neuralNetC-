@@ -5,13 +5,15 @@ class node
 private:
 	double bias; 
 	std::vector<double> weights;
-	std::vector<double*> weightUpdates; 
+	std::vector<std::vector<double>> weightUpdates; 
 	double* gradient;
 	double activation = 0;
 	double rawForwardSum; 
 	std::vector<double> biasUpdates; 
-	 
+	std::vector<double> localWeightUpdates;
+
 public:
+	
 	void updateWeights(double weight);
 
 	
@@ -28,18 +30,21 @@ public:
 
 	double getRawForwardSum();
 
-	void addToWeightUpdates(double* weightUpdate);
+
 
 	void setBias(double newBias);
 
 	double getBias();
 
-	double addToUpdateBiases(double newUpdate);
+	void addToUpdateBiases(double newUpdate);
 
 	void updateThisNeuronsWeights(double LEARNING_RATE);
 
 	void updateThisNeuronsBias(double LEARNING_RATE); 
 
+	void pushToLocalUpdates(double newWeight);
+
+	void pushToMainUpdates();
 
 };
 

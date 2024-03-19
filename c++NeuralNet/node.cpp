@@ -41,10 +41,6 @@ double node::getRawForwardSum()
 	return rawForwardSum;
 }
 
-void node::addToWeightUpdates(double* weightUpdate)
-{
-	weightUpdates.push_back(weightUpdate);
-}
 
 void node::setBias(double newBias)
 {
@@ -56,7 +52,7 @@ double node::getBias()
 	return bias; 
 }
 
-double node::addToUpdateBiases(double newUpdate)
+void node::addToUpdateBiases(double newUpdate)
 {
 	biasUpdates.push_back(newUpdate);
 }
@@ -64,12 +60,12 @@ double node::addToUpdateBiases(double newUpdate)
 void node::updateThisNeuronsWeights(double LEARNING_RATE)
 {
 	std::vector<double> newWeights;
-	for (int weightID; weightID < weights.size(); weightID++)
+	for (int weightID = 0; weightID < weights.size(); weightID++)
 	{
 		double avgUpdate = 0;
 		for (int updateSet = 0; updateSet < weightUpdates.size(); updateSet++)
 		{
-			avgUpdate = avgUpdate + weightUpdates.at(updateSet)[weightID];
+			avgUpdate = avgUpdate + weightUpdates.at(updateSet).at(weightID);
 
 
 		}
@@ -91,5 +87,17 @@ void node::updateThisNeuronsBias(double LEARNING_RATE)
 	newBias = bias - (LEARNING_RATE * avgUpdate); 
 	
 }
+
+void node::pushToLocalUpdates(double newWeight)
+{
+	localWeightUpdates.push_back(newWeight);
+}
+
+void node::pushToMainUpdates()
+{
+	weightUpdates.push_back(localWeightUpdates);
+	localWeightUpdates.clear(); 
+}
+
 
 
