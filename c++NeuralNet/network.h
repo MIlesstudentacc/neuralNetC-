@@ -27,7 +27,7 @@ private:
 
     double derivativecost(double activation, double desiredOutcome);
 
-    double softMax(double allExp,int numeriator);
+    double softMaxSingle(double allExp,int numeriator);
 
     double allExpOutput(); 
 public:

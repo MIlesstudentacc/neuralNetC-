@@ -3,9 +3,12 @@
 
 #include <iostream>
 #include "network.h"
+#include "fileReader.h";
+
 int main()
 {
     srand(time(0));
+    /*
     network* myNetwork = new network(); 
     
     myNetwork->populateNetworkStructFixed();
@@ -22,8 +25,11 @@ int main()
     myNetwork->forwardPropagateFixed();
     std::cout << "____________--NEW ACTIVATIONS____________" << std::endl;
     myNetwork->displayNetworkActivation();
+    */
+    
+    fileReader* myReader = new fileReader();
 
-
+    myReader->readFile("does not matter");
 
 
 }
