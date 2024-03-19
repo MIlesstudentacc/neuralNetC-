@@ -37,7 +37,8 @@ int main()
     
     irisDataClass* sample = myReader->takeSampleFromSet();
    
-    myNetwork->setDesiredOutcomes(myReader->getNumberFromClass(sample->getClass()))
+    myNetwork->setDesiredOutcomes(myReader->getNumberFromClass(sample->getClass()));
+
 
     
 

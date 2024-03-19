@@ -9,11 +9,11 @@
 class fileReader
 {
 private:
-	std::vector<IrisDataClass*> irisRows; 
+	std::vector<irisDataClass*> irisRows; 
 	std::vector<int> classID;
 	std::map<std::string, int> numericalFormClass;
 
-	std::vector<IrisDataClass*> SampleSet; 
+	std::vector<irisDataClass*> SampleSet; 
 public:
 	
 	std::vector<int> getClassID(); 
