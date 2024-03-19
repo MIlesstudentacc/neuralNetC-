@@ -1,5 +1,10 @@
 #include "irisDataClass.h"
 
+irisDataClass::irisDataClass()
+{
+
+}
+
 irisDataClass::irisDataClass(double sepalLength, double sepalWidth, double petalLength, double petalWidth, std::string Class)
 {
 	this->sepalLength = sepalLength;
@@ -33,3 +38,6 @@ std::string irisDataClass::getClass()
 {
 	return Class;
 }
+
+
+

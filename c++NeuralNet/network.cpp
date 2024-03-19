@@ -376,4 +376,11 @@ void network::updateAllBiases()
     }
 }
 
-
+void network::setDesiredOutcomes(int classPos) 
+{
+    for (int output; neuronCounts[totalLayers - 1]; output++)
+    {
+        desiredOutcome.push_back(0);
+    }
+    desiredOutcome.at(classPos) = 1; 
+}

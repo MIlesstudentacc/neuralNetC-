@@ -15,7 +15,7 @@ private:
     double* biases; 
     std::vector<double> costDerivativeVector;
     const double LEARNING_RATE = 0.001;
-    std::vector<double> desiredOutcome = { 0,0,1,0 };
+    std::vector<double> desiredOutcome;
 
  
 
@@ -71,5 +71,6 @@ public:
 
     void setTestInputs();
    
+    void setDesiredOutcomes(int classPos); 
 };
 
