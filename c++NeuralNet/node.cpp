@@ -28,6 +28,7 @@ double node::getActivation()
 
 double node::getWeight(int weightID)
 {
+	double weight = weights[weightID];
 	return weights[weightID];
 }
 
@@ -73,7 +74,9 @@ void node::updateThisNeuronsWeights(double LEARNING_RATE)
 		newWeights.push_back(weights.at(weightID) - (LEARNING_RATE * avgUpdate));
 		
 	}
+	weightUpdates.clear();
 	weights = newWeights; 
+	
 }
 
 void node::updateThisNeuronsBias(double LEARNING_RATE)
@@ -84,7 +87,10 @@ void node::updateThisNeuronsBias(double LEARNING_RATE)
 	{
 		avgUpdate = avgUpdate + biasUpdates[updateSet];
 	}
+
 	newBias = bias - (LEARNING_RATE * avgUpdate); 
+	bias = newBias; 
+	biasUpdates.clear();
 	
 }
 

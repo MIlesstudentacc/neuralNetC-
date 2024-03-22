@@ -43,7 +43,11 @@ public:
 
     void addToDerivativeCosts(double derivativeCostInstance); 
     
+    double calcBackBiasDeriv(int layer,int nextLayerCount);
+
     double calcBackDerivToCost(int layer, int nextLayerCount, node* neuron);
+
+
 
     void updateAllWeights();
 
@@ -72,5 +76,14 @@ public:
     void setTestInputs();
    
     void setDesiredOutcomes(int classPos); 
+
+    void setDesiredDataSetInputs(double petalWidth, double petalLength, double sepalLength, double sepalWidth);
+
+    bool CheckAccuracy(int classNumber); 
+
+    double sqaureRootCost(double activation, double DesiredActivation); 
+
+    
 };
+
 

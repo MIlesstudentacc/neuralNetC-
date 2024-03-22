@@ -41,7 +41,7 @@ double network::sigmoid(double x)
 double network::allExpOutput()
 {
     double expOutput = 0;
-    for (int outputs = 0; neuronCounts[totalLayers - 1]; outputs++)
+    for (int outputs = 0; outputs < neuronCounts[totalLayers - 1]; outputs++)
     {
         double activation = networkStructure[totalLayers - 1][outputs]->getActivation();
         expOutput = expOutput + exp(activation);
@@ -58,7 +58,7 @@ void network::populateNetworkStructFixed()
     for (int layers = 0; layers < totalLayers; layers++)
     {
         int currentLayerCount = neuronCounts[layers];
-        node** nodeList = new node*[inputNeurons]; 
+        node** nodeList = new node*[currentLayerCount]; 
      
         for (int nodeID = 0; nodeID < currentLayerCount; nodeID++)
         {
@@ -73,19 +73,39 @@ void network::populateNetworkStructFixed()
 
 node* network::generateWeights(node* nodeToPopulate,int layers)
 {
+    
     if (layers < totalLayers - 1)
     {
         int weightCount = neuronCounts[layers + 1];
+        double range = sqrt(weightCount);
         for (int nodeWeightID = 0; nodeWeightID < weightCount; nodeWeightID++)
         {
 
             double weight = (double)rand() / RAND_MAX;
+       
+            weight = std::fmod(weight,range);
+            int flip = rand() % 2;
+            if (flip)
+            {
+                weight = weight * -1;
+            }
             nodeToPopulate->updateWeights(weight);
         }
     }
-        if (layers > 1)
+        if (layers > 0)
         {
-            nodeToPopulate->setBias((double)rand() / RAND_MAX);
+            int biasCount = neuronCounts[layers];
+            double range = sqrt(biasCount);
+            double bias = (double)rand() / RAND_MAX;
+            bias = std::fmod(bias, range);
+            int flip = rand() % 2;
+            if (flip)
+            {
+                bias = bias * -1;
+            }
+
+
+            nodeToPopulate->setBias(bias);
         }
     
     return nodeToPopulate;
@@ -97,7 +117,7 @@ void network::calculateNextNeuronActivation(int neuronCount, int layerTwoNodeId,
     for (int nodeID = 0; nodeID < neuronCount; nodeID++)
     {
         node* neuron = networkStructure[layers][nodeID];
-        rawForwardPassSum = rawForwardPassSum + neuron->getWeight(layerTwoNodeId) * neuron->getActivation();
+        rawForwardPassSum = rawForwardPassSum + (neuron->getWeight(layerTwoNodeId) * neuron->getActivation());
     }
     node* nextNeuron = networkStructure[layers + 1][layerTwoNodeId];
     rawForwardPassSum = rawForwardPassSum + nextNeuron->getBias();
@@ -197,18 +217,36 @@ void network::addToDerivativeCosts(double derivativeCostInstance)
     costDerivativeVector.push_back(derivativeCostInstance);
 }
 
+double network::calcBackBiasDeriv(int layer, int nextLayerCount)
+{
+    double sumCost = 0;
+    //YOU FUCKING MUPPET YOUVE FORGOTTON THE BIAS 
+
+    for (int weightID = 0; weightID < nextLayerCount; weightID++)
+    {
+        node* nextNeuron = networkStructure[layer + 1][weightID];
+        double score = nextNeuron->getBias() * derivativeSigmoid(nextNeuron->getRawForwardSum()) * costDerivativeVector.at(weightID);
+        sumCost = sumCost + score;
+    }
+    return sumCost;
+}
+
 void network::populateDefaultCosts()
 {
     double derivCost;
+    costDerivativeVector.clear();
     for (int nodeID=0; nodeID < neuronCounts[totalLayers - 1]; nodeID++)
     {
         node* neuron = networkStructure[totalLayers-1][nodeID];
         if (classification == true)
         {
             double allExp = allExpOutput();
-            derivCost = derivativecost(softMaxSingle(allExp, neuron->getActivation()), desiredOutcome[nodeID]);
+            derivCost = derivativecost(softMaxSingle(allExp,nodeID), desiredOutcome[nodeID]);
         }
-        derivCost = derivativecost(neuron->getActivation(), desiredOutcome[nodeID]);
+        else
+        {
+            derivCost = derivativecost(neuron->getActivation(), desiredOutcome[nodeID]);
+        }
         costDerivativeVector.push_back(derivCost);
     }
 }
@@ -239,6 +277,7 @@ void network::calcBackPropagationFixed()
         nextNeuronCount = neuronCounts[layers];
         neuronCount = neuronCounts[layers - 1];
         newDCosts = backPropOneLayer(layers, neuronCount, nextNeuronCount, newDCosts);
+    
         if (newDCosts.size() > 0)
         {
             costDerivativeVector = newDCosts;
@@ -264,7 +303,7 @@ void network::setTestInputs()
 }
 std::vector<double> network::backPropOneLayer(int layers, int neuronCount, int nextNeuronCount,std::vector<double> newDCosts)
 {
-    double* weightUpdates = new double[nextNeuronCount];
+    
    
     double newDeriv = 0;
     for (int weightID = 0; weightID < nextNeuronCount; weightID++)
@@ -289,16 +328,22 @@ std::vector<double> network::backPropOneLayer(int layers, int neuronCount, int n
             networkStructure[layers - 1][nodeID] = neuron;
 
         } 
-        if (layers > 2)
+        //here is where bias needs done
+        if (layers > 0)
         {
+
             double newBias = 1 * derivativeSigmoid(nextNeuron->getRawForwardSum()) * newDeriv;
             nextNeuron->addToUpdateBiases(newBias);
         }
+     
+    
         if (layers < totalLayers - 1)
         {
             nextNeuron->pushToMainUpdates();
             networkStructure[layers][weightID] = nextNeuron;
         }
+  
+        
     }
     
     return newDCosts;
@@ -318,18 +363,19 @@ double network::derivativeSigmoid(double x)
 double network::derivativecost(double activation, double desiredOutcome)
 {
     return(2 * (activation - desiredOutcome));
+    
 }
 
 double network::calcBackDerivToCost(int layer,int nextLayerCount,node* neuron)
 {
     double sumCost =0;
-
+    
     
     for (int weightID = 0; weightID < nextLayerCount; weightID++)
     {
         node* nextNeuron = networkStructure[layer + 1][weightID];
-
-        sumCost = sumCost + neuron->getWeight(weightID) * derivativeSigmoid(nextNeuron->getRawForwardSum()) * costDerivativeVector.at(weightID);
+        double score = neuron->getWeight(weightID) * derivativeSigmoid(nextNeuron->getRawForwardSum()) * costDerivativeVector.at(weightID);
+        sumCost = sumCost + score;
     }
     return sumCost;
 }
@@ -339,14 +385,7 @@ void network::updateAllWeights()
     int neuronCount = 0; 
     for (int layers = 0; layers < totalLayers-1; layers++)
     {
-        if (layers == 0)
-        {
-            neuronCount = inputNeurons;
-        }
-        if (layers == totalLayers - 2)
-        {
-            neuronCount = hiddenLayers;
-        }
+        neuronCount = neuronCounts[layers];
         for (int nodeID = 0; nodeID < neuronCount; nodeID++)
         {
             networkStructure[layers][nodeID]->updateThisNeuronsWeights(LEARNING_RATE);
@@ -358,16 +397,11 @@ void network::updateAllWeights()
 void network::updateAllBiases()
 {
     int neuronCount = 0;
-    for (int layers = 1; layers < totalLayers - 1; layers++)
+    for (int layers = 1; layers < totalLayers; layers++)
     {
-        if (layers < totalLayers - 1)
-        {
-            neuronCount = hiddenLayers;
-        }
-        else
-        {
-            neuronCount = outputNeurons;
-        }
+
+
+        neuronCount = neuronCounts[layers];
         for (int nodeID = 0; nodeID < neuronCount; nodeID++)
         {
             networkStructure[layers][nodeID]->updateThisNeuronsBias(LEARNING_RATE);
@@ -378,9 +412,52 @@ void network::updateAllBiases()
 
 void network::setDesiredOutcomes(int classPos) 
 {
-    for (int output; neuronCounts[totalLayers - 1]; output++)
+    for (int output = 0; output < neuronCounts[totalLayers - 1]; output++)
     {
         desiredOutcome.push_back(0);
     }
-    desiredOutcome.at(classPos) = 1; 
+    desiredOutcome.at(classPos-1) = 1; 
 }
+void network::setDesiredDataSetInputs(double petalWidth, double petalLength, double sepalLength, double sepalWidth)
+{
+    networkStructure[0][0]->setActivation(petalWidth);
+    networkStructure[0][1]->setActivation(petalLength);
+    networkStructure[0][2]->setActivation(sepalLength);
+    networkStructure[0][3]->setActivation(sepalWidth);
+   
+}
+
+bool network::CheckAccuracy(int classNumber)
+{
+    double max = 0;
+    int maxID;
+    for (int nodeID = 0; nodeID < neuronCounts[totalLayers - 1]; nodeID++)
+    {
+        double allExp = allExpOutput(); 
+        double softmax = softMaxSingle(allExp, nodeID);
+       
+        if (softmax > max)
+        {
+            max = softmax;
+            maxID = nodeID; 
+        }
+        
+        
+    }
+    if (maxID == classNumber)
+    {
+        return true;
+    }
+    else
+    {
+        return false; 
+    }
+    
+}
+
+double network::sqaureRootCost(double activation, double DesiredActivation)
+{
+    return sqrt(pow(activation - DesiredActivation, 2));
+}
+
+
