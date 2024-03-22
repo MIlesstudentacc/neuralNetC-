@@ -220,7 +220,7 @@ void network::addToDerivativeCosts(double derivativeCostInstance)
 double network::calcBackBiasDeriv(int layer, int nextLayerCount)
 {
     double sumCost = 0;
-    //YOU FUCKING MUPPET YOUVE FORGOTTON THE BIAS 
+
 
     for (int weightID = 0; weightID < nextLayerCount; weightID++)
     {
@@ -412,6 +412,7 @@ void network::updateAllBiases()
 
 void network::setDesiredOutcomes(int classPos) 
 {
+    desiredOutcome.clear();
     for (int output = 0; output < neuronCounts[totalLayers - 1]; output++)
     {
         desiredOutcome.push_back(0);

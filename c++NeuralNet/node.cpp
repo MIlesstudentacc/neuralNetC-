@@ -76,6 +76,7 @@ void node::updateThisNeuronsWeights(double LEARNING_RATE)
 	}
 	weightUpdates.clear();
 	weights = newWeights; 
+	newWeights.clear();
 	
 }
 

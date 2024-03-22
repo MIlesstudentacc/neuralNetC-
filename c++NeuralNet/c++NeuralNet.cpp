@@ -35,7 +35,7 @@ int main()
     myReader->calcMeans();
     irisDataClass* sample = new irisDataClass();
     std::vector<int> classIDS = myReader->getClassID(); 
-    for (int sampleSetID = 0; sampleSetID < 500; sampleSetID++)
+    for (int sampleSetID = 0; sampleSetID < 5000; sampleSetID++)
     {
         if (sampleSetID == 1)
         {
@@ -76,9 +76,11 @@ int main()
         
     }
     myReader->generateSampleSet();
-    for (int sampleID = 0; sampleID < myReader->getSampleSetSize(); sampleID++)
+    int iterations = myReader->getSampleSetSize();
+    int trueGeuss = 0;
+    for (int sampleID = 0; sampleID < (iterations-1); sampleID++)
     {
-        int trueGeuss = 0; 
+        
        
         irisDataClass* refSample = myReader->takeSampleFromSet();
         sample->copyObjArg(refSample->getSepalLength(), refSample->getSepalWidth(),

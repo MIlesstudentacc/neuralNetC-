@@ -12,7 +12,7 @@ void fileReader::readFile(std::string csvFile)
 	std::ifstream reader;
 	int rowNum = -1; 
 	int classFoundNo = 0;
-	reader.open("C:/Users/Miles/source/repos/neuralNetC2-/iris.csv");
+	reader.open("C:/Users/c3622855/source/repos/iris.csv");
 	std::string line = "";
 	std::getline(reader, line);
 	std::cout << line << std::endl;
