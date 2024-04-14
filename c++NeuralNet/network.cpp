@@ -3,7 +3,7 @@
 network::network()
 {
     //cutting out for ease of testing
-    
+    /*
     std::cout << "how many neurons will be in the input layer" << std::endl;
     std::cin >> inputNeurons;
     neuronCounts.push_back(inputNeurons);
@@ -18,17 +18,17 @@ network::network()
     std::cout << "how many neurons will be in the output layer" << std::endl;
     std::cin >> outputNeurons;
     neuronCounts.push_back(outputNeurons);
- 
+    */
     /*
     inputNeurons = 5;
     hiddenNeurons = 8;
     hiddenLayers = 3;
     outputNeurons = 5;*/
-    totalLayers = hiddenLayers + 2;
+    //totalLayers = hiddenLayers + 2;
 
 
  
-    networkStructure = new node**[totalLayers];
+    //networkStructure = new node**[totalLayers];
 
 }
 
@@ -308,6 +308,7 @@ std::vector<double> network::backPropOneLayer(int layers, int neuronCount, int n
     double newDeriv = 0;
     for (int weightID = 0; weightID < nextNeuronCount; weightID++)
     {
+        std::cout << weightID << std::endl;
         node* nextNeuron = networkStructure[layers][weightID];
         if (layers < totalLayers - 1)
         {
@@ -322,7 +323,15 @@ std::vector<double> network::backPropOneLayer(int layers, int neuronCount, int n
         for (int nodeID = 0; nodeID < neuronCount; nodeID++)
         {
             node* neuron = networkStructure[layers - 1][nodeID];
-            double weightAdd = neuron->getActivation() * derivativeSigmoid(nextNeuron->getRawForwardSum()) * newDeriv;
+            double weightAdd;
+            if (layers < totalLayers - 1)
+            {
+                weightAdd = neuron->getActivation() * derivativeSigmoid(nextNeuron->getRawForwardSum()) * newDeriv;
+            }
+            else
+            {
+                weightAdd = neuron->getActivation() * nextNeuron->getRawForwardSum() * newDeriv;
+            }
             neuron->pushToLocalUpdates(weightAdd);
            
             networkStructure[layers - 1][nodeID] = neuron;
@@ -331,8 +340,15 @@ std::vector<double> network::backPropOneLayer(int layers, int neuronCount, int n
         //here is where bias needs done
         if (layers > 0)
         {
-
-            double newBias = 1 * derivativeSigmoid(nextNeuron->getRawForwardSum()) * newDeriv;
+            double newBias;
+            if (layers < totalLayers - 1)
+            {
+                newBias = 1 * derivativeSigmoid(nextNeuron->getRawForwardSum()) * newDeriv;
+            }
+            else
+            {
+                newBias = 1 * nextNeuron->getRawForwardSum() * newDeriv;
+            }
             nextNeuron->addToUpdateBiases(newBias);
         }
      
@@ -417,7 +433,7 @@ void network::setDesiredOutcomes(int classPos)
     {
         desiredOutcome.push_back(0);
     }
-    desiredOutcome.at(classPos-1) = 1; 
+    desiredOutcome.at(classPos) = 1; 
 }
 void network::setDesiredDataSetInputs(double petalWidth, double petalLength, double sepalLength, double sepalWidth)
 {
@@ -460,5 +476,197 @@ double network::sqaureRootCost(double activation, double DesiredActivation)
 {
     return sqrt(pow(activation - DesiredActivation, 2));
 }
+
+void network::setConvulationSize(int size)
+{
+    convulationLayers = new convluation*[size];
+    convulationSize = size;
+}
+
+void network::passConvForward(int layer)
+{
+    convluation* oldConv = convulationLayers[layer];
+    convluation* newConv = convulationLayers[layer + 1];
+    newConv->copyPrevLayerData(oldConv->getNewMap(), oldConv->getDimensionX(), 
+        oldConv->getDimensionY());
+
+
+}
+
+convluation* network::getConvulationLayer(int layer)
+{
+    return convulationLayers[layer];
+}
+
+void network::performConvulation(int layer)
+{
+    convluation* targetConv = convulationLayers[layer];
+    std::cout << "kernel update has just been performed" << std::endl;
+    targetConv->fixKernelUpdate();
+    targetConv->tempOutputNewMap();
+    targetConv->sendToOld();
+    activateAllInLayer(targetConv);
+    std::cout << "map has just been activated" << std::endl;
+    targetConv->tempOutputNewMap();
+
+}
+
+std::vector<double> network::getCostDerivativeVector()
+{
+    return costDerivativeVector;
+}
+
+
+void network::setAllInputs(double* inputs)
+{
+    for (int i = 0; i < inputNeurons; i++)
+    {
+      
+            networkStructure[0][i]->setActivation(inputs[i]);
+        
+    }
+}
+
+double* network::inputOnLastConv()
+{
+    convluation* layer = convulationLayers[convulationSize-1];
+    double* inputs = new double[inputNeurons];
+    int yValue = 0;
+    for (int x = 1; x < layer->getDimensionX()-1; x++)
+    {
+        yValue = 1 * layer->getDimensionX() + 1;
+        for (int y = 0; y < layer->getDimensionY()- 2; y++)
+        {
+            int index = yValue + x;
+            inputs[y * (layer->getDimensionX() - 2)] = layer->GetValueAtIndex(index);
+            yValue = yValue + layer->getDimensionX() + 1;
+
+        }
+    }
+    return inputs;
+}
+
+void network::backPropConvNets()
+{
+    convluation* layerLast = convulationLayers[convulationSize-1]; 
+    node*** inpLayer = networkStructure;
+    layerLast->localBackPropToFF(convulationDerivatives, costDerivativeVector, inpLayer);
+    for (int i = convulationSize - 2; i >= 0; i--)
+    {
+        convluation* layer = convulationLayers[i];
+        
+        layer->localBackProp(convulationDerivatives,layerLast->getOldMap());
+        layerLast = layer;
+    }
+}
+
+void network::calcBackDerivOnInput()
+{
+    std::vector<double> newD;
+    for (int i = 0; i < neuronCounts[0]; i++)
+    {
+        node* myNode = networkStructure[0][i];
+        double newDeriv = calcBackDerivToCost(0, neuronCounts[1], myNode);
+        newD.push_back(newDeriv);
+    }
+    costDerivativeVector = newD;
+}
+
+void network::updateConvNets()
+{
+    for (int i = 0; i < convulationSize; i++)
+    {
+        convluation* layer = convulationLayers[i];
+        layer->updateAttachedKernel();
+    }
+}
+
+
+network::network(int inputNeurons, int* hiddenLayers,int outputNeurons,int hiddenLayerCount)
+{
+    this->inputNeurons = inputNeurons;
+    neuronCounts.push_back(inputNeurons);
+    for (int i = 0; i < hiddenLayerCount; i++)
+    {
+      
+        neuronCounts.push_back(hiddenLayers[i]);
+    }
+    neuronCounts.push_back(outputNeurons);
+    totalLayers = hiddenLayerCount + 2;
+    networkStructure = new node **[totalLayers];
+
+}
+
+
+
+
+void network::activateAllInLayer(convluation* layer)
+{
+    int yValue = 0;
+    for (int x = 1; x < layer->getDimensionX()-1; x++)
+    {
+        yValue = 1 * layer->getDimensionX();
+        for (int y = 1; y < layer->getDimensionY()-1; y++)
+        {
+            int index = yValue + x;
+            if (layer->GetValueAtIndex(index) != 0)
+            {
+                layer->setNewMapValue(index, sigmoid(layer->GetValueAtIndex(index)));
+            }
+            yValue = yValue + layer->getDimensionX();
+        }
+    }
+}
+
+void network::performAllConvulation(double* input)
+{
+    int i = 0;
+    for (i = 0; i < convulationSize-1; i++)
+    {
+        convluation* convLayer = convulationLayers[i];
+        if (i == 0)
+        {
+            
+            convLayer->populateInputMap(input);
+            std::cout << "output shnuffed up" << std::endl;
+            convLayer->outputMap();
+
+        }
+        performConvulation(i);
+        
+        passConvForward(i);
+    }
+    performConvulation(i);
+    
+
+}
+
+void network::populateConvulationLayers(int dimensionX,int dimensionY)
+{
+    convulationDerivatives = new double[dimensionX*dimensionY];
+    std::fill_n(convulationDerivatives, dimensionX*dimensionY, 0);
+
+    for (int i = 0; i < convulationSize; i++)
+    {
+        convluation* newLayer = new convluation(); 
+        
+        Kernel* myKernel = new Kernel();
+
+        newLayer->setDimensions(dimensionX, dimensionY);
+       
+       
+        if (i == 0)
+        {
+            newLayer->setInputMap();
+        }
+        myKernel->setWeightsSize(9);
+        myKernel->generateRandomWeights();
+        myKernel->setBias(myKernel->generateBias());
+        newLayer->setKernel(myKernel);
+        convulationLayers[i] = newLayer;
+    }
+
+}
+
 
 

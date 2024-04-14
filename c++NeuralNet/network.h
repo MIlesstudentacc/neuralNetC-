@@ -2,7 +2,7 @@
 #include <math.h>
 #include <iostream>
 #include "node.h"
-
+#include "C:\Users\Miles\source\repos\neuralNetC-4\convluation.h"
 class network
 {
 private:
@@ -16,8 +16,9 @@ private:
     std::vector<double> costDerivativeVector;
     const double LEARNING_RATE = 0.001;
     std::vector<double> desiredOutcome;
-
- 
+    convluation** convulationLayers;
+    int convulationSize;
+    double* convulationDerivatives;
 
     bool classification = true; 
     node*** networkStructure;
@@ -83,7 +84,35 @@ public:
 
     double sqaureRootCost(double activation, double DesiredActivation); 
 
+    void setConvulationSize(int size); 
+
+    void passConvForward(int layer);
     
+    convluation* getConvulationLayer(int layer);
+
+    void populateConvulationLayers(int dimensionX,int dimensionY); 
+    
+    void performConvulation(int layer);
+
+    void performAllConvulation(double* input); 
+
+    std::vector<double> getCostDerivativeVector();
+
+    void backPropConvulation();
+   
+    void activateAllInLayer(convluation* layer);
+
+    network(int inputNeurons,int* hiddenLayers,int outputNeurons,int hiddenLayerCount);
+
+    void setAllInputs(double* doubleInputs);
+
+    double* inputOnLastConv();
+
+    void backPropConvNets();
+
+    void calcBackDerivOnInput();
+
+    void updateConvNets(); 
 };
 
 

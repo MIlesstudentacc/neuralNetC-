@@ -4,108 +4,60 @@
 #include <iostream>
 #include "network.h"
 #include "fileReader.h"
-
+#include "C:\Users\Miles\source\repos\neuralNetC-4\convluation.h"
+#include "C:\Users\Miles\source\repos\neuralNetC-4\MNIST.h"
+#include "C:\Users\Miles\source\repos\neuralNetC-4\MNISTreader.h"
 
 int main()
 {
     srand(time(0));
     
-    network* myNetwork = new network(); 
-    /*
-    myNetwork->populateNetworkStructFixed();
-    myNetwork->setTestInputs(); 
-    myNetwork->forwardPropagateFixed();
-    myNetwork->displayNetworkBias();
-    myNetwork->displayNetworkActivation();
-    //myNetwork->getDesiredOutcomes();
-    
-    myNetwork->calcBackPropagationFixed();
-    myNetwork->updateAllBiases();
-    myNetwork->updateAllWeights();
+   
+    int hiddenLayer[3] = { 50,50,50 };
+   
+    network* myNetwork = new network(784,hiddenLayer,10,3);
+    myNetwork->setConvulationSize(2);
+    myNetwork->populateConvulationLayers(28,28);
+  
+    MNIST* normSample= new MNIST();
+    MNIST* exactCopy ; 
+    MNISTreader* myMNISTReader = new MNISTreader();
 
-    myNetwork->forwardPropagateFixed();
-    std::cout << "____________--NEW ACTIVATIONS____________" << std::endl;
-    myNetwork->displayNetworkActivation();
-    */
-    
-    fileReader* myReader = new fileReader();
-    int random = rand() % 10;
+    myMNISTReader->populateStorageTemplate();
+
+    myMNISTReader->readFile("do nought");
+    myMNISTReader->normliseAll();
     myNetwork->populateNetworkStructFixed();
-    myReader->readFile("does not matter");
-    myReader->calcMeans();
-    irisDataClass* sample = new irisDataClass();
-    std::vector<int> classIDS = myReader->getClassID(); 
+
+    
+    myMNISTReader->generateSampleSet();
     for (int sampleSetID = 0; sampleSetID < 5000; sampleSetID++)
     {
-        if (sampleSetID == 1)
-        {
-            myNetwork->displayNetworkActivation();
-        }
-        myReader->generateSampleSet();
-        int iterations = myReader->getSampleSetSize();
-        for (int sampleID = 0; sampleID < (iterations-1); sampleID++)
-        {
+        exactCopy = myMNISTReader->takeSampleFromSet(3);
+        normSample->copyData(exactCopy->getInput(), exactCopy->getClass());
+        myNetwork->performAllConvulation(normSample->getInput());
+        myNetwork->setDesiredOutcomes(normSample->getClass());
+        double* feedNetworkInput = myNetwork->inputOnLastConv();
 
-            irisDataClass* refSample = myReader->takeSampleFromSet();
-            sample->copyObjArg(refSample->getSepalLength(), refSample->getSepalWidth(),
-                refSample->getPetalLength(), refSample->getPetalWidth());
-            sample->setClass(refSample->getClass());
-            //sample = myReader->standardDeviationOne(sample);
-            sample = myReader->normalise(sample);
-          
-            //sample->displayAttributes(); 
+        myNetwork->inputOnLastConv();
 
-            myNetwork->setDesiredOutcomes(myReader->getNumberFromClass(sample->getClass()));
-            myNetwork->setDesiredDataSetInputs(sample->getPetalWidth(), sample->getPetalLength()
-                , sample->getSepalLength(), sample->getSepalWidth());
-            myNetwork->forwardPropagateFixed();
-            myNetwork->calcBackPropagationFixed();
-            
-            /*(random == sampleID)
-            {
-                int random = rand() % 10;
-                random = random + sampleID;
-         
-
-            }*/
-            myNetwork->updateAllBiases();
-            myNetwork->updateAllWeights();
-
-
-        }
-        
-    }
-    myReader->generateSampleSet();
-    int iterations = myReader->getSampleSetSize();
-    int trueGeuss = 0;
-    for (int sampleID = 0; sampleID < (iterations-1); sampleID++)
-    {
-        
-       
-        irisDataClass* refSample = myReader->takeSampleFromSet();
-        sample->copyObjArg(refSample->getSepalLength(), refSample->getSepalWidth(),
-            refSample->getPetalLength(), refSample->getPetalWidth());
-        sample->setClass(refSample->getClass());
-        //sample = myReader->standardDeviationOne(sample);
-        sample = myReader->normalise(sample);
-        //sample = myReader->standardDeviationOne(sample);
-        myNetwork->setDesiredOutcomes(myReader->getNumberFromClass(sample->getClass()));
-        myNetwork->setDesiredDataSetInputs(sample->getPetalWidth(), sample->getPetalLength()
-            , sample->getSepalLength(), sample->getSepalWidth());
+        //pass
         myNetwork->forwardPropagateFixed();
-        int classNum = myReader->getNumberFromClass(sample->getClass());
-        bool correct = myNetwork->CheckAccuracy(classNum-1);
-        if (correct)
-        {
-            trueGeuss = trueGeuss++;
-        }
-        correct = false; 
+        myNetwork->calcBackPropagationFixed();
+        myNetwork->calcBackDerivOnInput();
+        myNetwork->backPropConvNets();
+
+
+        myNetwork->updateAllWeights();
+        myNetwork->updateAllBiases();
+        myNetwork->updateConvNets();
     }
+    
+   
+       
+   
 
     
-    //myNetwork->displayNetworkActivation();
-
-    
-
+   
 
 }
